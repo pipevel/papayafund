@@ -53,7 +53,7 @@ export default function Home() {
 
         // ✅ Ensure Polygon Amoy is Active
         const network = await provider.getNetwork();
-        if (network.chainId !== 80002) {
+        if (Number(network.chainId) !== 80002) {
           console.log("⚡ Switching to Polygon Amoy...");
           await window.ethereum.request({
             method: "wallet_addEthereumChain",
