@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bars3Icon, BugAntIcon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
-
+import { ethers } from "ethers";
 
 type HeaderMenuLink = {
   label: string;
@@ -20,7 +20,6 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "Home",
     href: "/",
   },
-  
   {
     label: "Debug Contracts",
     href: "/debug",
@@ -55,10 +54,79 @@ export const HeaderMenuLinks = () => {
 };
 
 /**
- * Site header
+ * 🦊 Function to Add & Switch to Polygon Amoy Testnet in Metamask
+ */
+const switchToPolygonAmoy = async () => {
+  if (typeof window.ethereum !== "undefined") {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const network = await provider.getNetwork();
+
+      console.log("Current Network:", network.chainId);
+
+      if (network.chainId !== 80002) {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [
+            {
+              chainId: "0x13882",
+              chainName: "Polygon Amoy Testnet",
+              nativeCurrency: {
+                name: "MATIC",
+                symbol: "MATIC",
+                decimals: 18,
+              },
+              rpcUrls: ["https://rpc-amoy.polygon.technology"],
+              blockExplorerUrls: ["https://www.oklink.com/amoy"],
+            },
+          ],
+        });
+
+        console.log("✅ Switched to Polygon Amoy!");
+      } else {
+        console.log("Already on Polygon Amoy");
+      }
+
+      await connectWallet(); // Auto-connect after switching
+    } catch (error) {
+      console.error("❌ Failed to switch to Polygon Amoy:", error);
+    }
+  } else {
+    alert("❌ Metamask not detected. Please install it.");
+  }
+};
+
+/**
+ * 🔗 Function to Connect Metamask & Fetch Wallet Address
+ */
+const connectWallet = async (setUserAddress) => {
+  if (typeof window.ethereum !== "undefined") {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+
+      const signer = await provider.getSigner();
+      const userAddress = await signer.getAddress();
+
+      console.log("✅ Connected Wallet:", userAddress);
+      setUserAddress(userAddress);
+
+      alert(`✅ Connected: ${userAddress}`);
+    } catch (error) {
+      console.error("❌ Error connecting wallet:", error);
+      alert("❌ Failed to connect wallet. Please check Metamask.");
+    }
+  } else {
+    alert("❌ Metamask is not installed. Please install Metamask.");
+  }
+};
+
+/**
+ * 🏗️ Site Header Component
  */
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [userAddress, setUserAddress] = useState(""); // Store Wallet Address
   const burgerMenuRef = useRef<HTMLDivElement>(null);
   useOutsideClick(
     burgerMenuRef,
@@ -94,18 +162,18 @@ export const Header = () => {
           <div className="flex relative w-10 h-10">
             <Image alt="SE2 logo" className="cursor-pointer" fill src="/logo.svg" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold leading-tight">Scaffold-ETH</span>
-            <span className="text-xs">Ethereum dev stack</span>
-          </div>
         </Link>
-        <ul className="hidden lg:flex lg:flex-nowrap menu menu-horizontal px-1 gap-2">
-          <HeaderMenuLinks />
-        </ul>
       </div>
       <div className="navbar-end flex-grow mr-4">
-        <RainbowKitCustomConnectButton />
-        <FaucetButton />
+        <p className="text-sm mr-2">
+          Wallet: {userAddress ? userAddress : "Not Connected"}
+        </p>
+        <button className="btn btn-primary mr-2" onClick={switchToPolygonAmoy}>
+          🦊 Connect Polygon Amoy
+        </button>
+        <button className="btn btn-secondary" onClick={() => connectWallet(setUserAddress)}>
+          🔗 Connect Wallet
+        </button>
       </div>
     </div>
   );
