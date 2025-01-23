@@ -1,76 +1,43 @@
+"use client"; // Ensure it runs only on the client side
 
-"use client";
+import { useEffect, useState } from "react";
+import { ethers } from "ethers";
 
-import { useAccount } from "wagmi";
-import { Address } from "~~/components/scaffold-eth";
-import type { NextPage } from "next";
-import Link from "next/link";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+export default function Home() {
+  const [stablecoinAddress, setStablecoinAddress] = useState("Fetching...");
 
+  useEffect(() => {
+    async function fetchStablecoin() {
+      try {
+        console.log("Initializing provider...");
+        const provider = new ethers.JsonRpcProvider("https://rpc-amoy.polygon.technology");
 
-const Home: NextPage = () => {
-  const { address: connectedAddress } = useAccount();
+        console.log("Creating contract instance...");
+        const contractAddress = "0xd31d3e1f60552ba8b35aa3bd17c949404fdd12c4";
+
+        const abi =  [{"inputs":[{"internalType":"address","name":"_stablecoin","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"donor","type":"address"},{"indexed":false,"internalType":"uint256","name":"causeId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"DonationReceived","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"causeId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FundsWithdrawn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[{"internalType":"string","name":"_name","type":"string"},{"internalType":"address payable","name":"_recipient","type":"address"}],"name":"addCause","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"causeCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"causes","outputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address payable","name":"recipient","type":"address"},{"internalType":"uint256","name":"totalDonations","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_causeId","type":"uint256"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"donate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"stablecoin","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_causeId","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+        const contract = new ethers.Contract(contractAddress, abi, provider);
+
+        // Debugging: List available functions
+        console.log("Contract Functions:", Object.keys(contract));
+
+        console.log("Fetching stablecoin address...");
+        const stablecoin = await contract.stablecoin();
+        console.log("Stablecoin Address:", stablecoin);
+        setStablecoinAddress(stablecoin);
+      } catch (error) {
+        console.error("Error fetching stablecoin:", error);
+        setStablecoinAddress("Error fetching stablecoin");
+      }
+    }
+
+    fetchStablecoin();
+  }, []);
 
   return (
-    <>
-      <div className="flex items-center flex-col flex-grow pt-10">
-        <div className="px-5">
-          <h1 className="text-center">
-            <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Papayafund el sitio que te permitirá recibir financiamiento para tus proyectos</span>
-            
-          </h1>
-          <div className="flex justify-center items-center space-x-2 flex-col sm:flex-row">
-            <p className="my-2 font-medium">Connected Address:</p>
-            <Address address={connectedAddress} />
-          </div>
-          
-<p className="text-center text-lg">
-  Get started by editing{" "}
-  <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-    packages/nextjs/app/page.tsx
-  </code>
-</p>
-<p className="text-center text-lg">
-  Edit your smart contract{" "}
-  <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-    YourContract.sol
-  </code>{" "}
-  in{" "}
-  <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-    packages/hardhat/contracts
-  </code>
-</p>
-
-        </div>
-
-        <div className="flex-grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col sm:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contracts
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+    <div>
+      <h1>Funding Dapp</h1>
+      <p>Stablecoin Address: {stablecoinAddress}</p>
+    </div>
   );
-};
-
-export default Home;
+}
