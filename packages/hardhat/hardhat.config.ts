@@ -169,7 +169,7 @@ const config: HardhatUserConfig = {
   },
   // configuration for harhdat-verify plugin
   etherscan: {
-    apiKey: `${etherscanApiKey}`,
+    apiKey: process.env.POLYGONSCAN_API_KEY,
   },
   // configuration for etherscan-verify from hardhat-deploy plugin
   verify: {
