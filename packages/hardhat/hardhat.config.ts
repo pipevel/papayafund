@@ -111,7 +111,8 @@ const config: HardhatUserConfig = {
     },
     amoy: {
       url: "https://rpc-amoy.polygon.technology",
-      accounts: [deployerPrivateKey],
+      chainId: 80002,
+      accounts: [process.env.PRIVATE_KEY],
     },
     gnosis: {
       url: "https://rpc.gnosischain.com",
